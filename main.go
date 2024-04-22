@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -23,13 +27,32 @@ Os requisitos para este desafio são:
 */
 
 func main() {
-	cep := "01310200"
 
+	fmt.Println("Digite o CEP para pesquisar")
+	reader := bufio.NewReader(os.Stdin)
+	zipcode, errorOnRead := reader.ReadString('\n')
+
+	if errorOnRead != nil {
+		print("Entre com uma cep válido!\n")
+		return
+	}
+	cepReadyFromSearch := treatZipCode(zipcode)
+
+	_, errConvertToInt := strconv.Atoi(cepReadyFromSearch)
+	if errConvertToInt != nil {
+		print("Entre com uma cep válido!\n")
+		return
+	}
+
+	apiSearch(cepReadyFromSearch)
+}
+
+func apiSearch(zipcode string) {
 	viacepChannel := make(chan string)
 	brasilapiChannel := make(chan string)
 
-	go getApiData("https://brasilapi.com.br/api/cep/v1/"+cep, viacepChannel)
-	go getApiData("http://viacep.com.br/ws/"+cep+"/json/", brasilapiChannel)
+	go getApiData("https://brasilapi.com.br/api/cep/v1/"+zipcode, viacepChannel)
+	go getApiData("http://viacep.com.br/ws/"+zipcode+"/json/", brasilapiChannel)
 
 	select {
 	case msg1 := <-viacepChannel:
@@ -59,4 +82,12 @@ func getApiData(url string, c chan<- string) {
 		c <- string(resBody)
 	}
 
+}
+
+func treatZipCode(zipcode string) string {
+	aux := strings.TrimSpace(zipcode)
+	aux = strings.Replace(aux, ".", "", -1)
+	aux = strings.Replace(aux, "-", "", -1)
+
+	return aux
 }
