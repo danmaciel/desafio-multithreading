@@ -33,11 +33,11 @@ func main() {
 
 	select {
 	case msg1 := <-viacepChannel:
-		print("ViaCep => " + msg1)
+		print("\nViaCep => " + msg1 + "\n")
 	case msg2 := <-brasilapiChannel:
-		print("BrasilAPI => " + msg2)
+		print("\nBrasilAPI => " + msg2 + "\n")
 	case <-time.After(time.Second):
-		print("TimeOut")
+		print("TimeOut\n")
 	}
 }
 
